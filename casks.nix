@@ -47,10 +47,7 @@
 
       nativeBuildInputs = with pkgs;
         [
-          undmg
-          unzip
           gzip
-          _7zz
           makeWrapper
         ]
         ++ lib.lists.optional isPkg (
@@ -71,7 +68,21 @@
         ''
         else if isApp
         then ''
-          undmg $src || unzip $src || 7zz x -snld $src
+          echo "Creating temp directory"
+          mnt=$(TMPDIR=/tmp mktemp -d -t nix-XXXXXXXXXX)
+          function finish {
+              echo "Ejecting temp directory"
+              /usr/bin/hdiutil detach $mnt -force
+              rm -rf $mnt
+          }
+          # Detach volume when receiving SIG "0"
+          trap finish EXIT
+          # Mount DMG file
+          echo "Mounting DMG file into \"$mnt\""
+          /usr/bin/hdiutil attach -nobrowse -mountpoint $mnt $src
+          # Copy content to local dir for later use
+          echo 'Copying extracted content into "sourceRoot"'
+          cp -ar "$mnt/." "$PWD/"
         ''
         else if isBinary
         then ''
