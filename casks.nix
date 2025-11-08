@@ -84,7 +84,14 @@
               /usr/bin/hdiutil attach -nobrowse -mountpoint "$mnt" "$src"
               echo 'Copying mounted contents'
               cp -ar "$mnt/." "$PWD/"
-              ''
+              ;;
+            *)
+              echo "Unknown MIME: $mime"
+              echo "Attempting 7zz as a fallback"
+              7zz x -snld $src
+              ;;
+            esac
+        ''
         else if isBinary
 then ''
           if [ "$(file --mime-type -b "$src")" == "application/gzip" ]; then
