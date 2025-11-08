@@ -68,7 +68,7 @@
           xar -xf $src
           mkdir -p package
           cd package
-          for pkg in $(cat Distribution | grep -oE "#.+\.pkg" | sed -e "s/^#//" -e "s/$/\/Payload/"); do
+          for pkg in $(cat ../Distribution | grep -oE "#.+\.pkg" | sed -e "s/^#//" -e "s/$/\/Payload/"); do
             magic=$(xxd -l 6 "../$pkg" | awk '{print $2$3$4}' | head -n1)
             case $magic in
               70627a78*) echo "PBZX detected"; pbzx -n "../$pkg" | cpio -idm ;;
