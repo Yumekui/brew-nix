@@ -48,6 +48,8 @@
       nativeBuildInputs = with pkgs;
         [
           gzip
+          _7zz
+          file
           makeWrapper
         ]
         ++ lib.lists.optional isPkg (
@@ -66,42 +68,41 @@
             zcat $pkg | cpio -i
           done
         ''
-        else if isApp
+        else if isApp 
         then ''
-          echo "Creating temp directory"
-          mnt=$(TMPDIR=/tmp mktemp -d -t nix-XXXXXXXXXX)
-          function finish {
-              echo "Ejecting temp directory"
-              /usr/bin/hdiutil detach $mnt -force
-              rm -rf $mnt
-          }
-          # Detach volume when receiving SIG "0"
-          trap finish EXIT
-          # Mount DMG file
-          echo "Mounting DMG file into \"$mnt\""
-          /usr/bin/hdiutil attach -nobrowse -mountpoint $mnt $src
-          # Copy content to local dir for later use
-          echo 'Copying extracted content into "sourceRoot"'
-          cp -ar "$mnt/." "$PWD/"
-        ''
+          mime="$(file --mime-type -b "$src")"
+          case "$mime" in
+            application/x-apple-diskimage|application/octet-stream)
+              echo "Detected DMG – mounting with hdiutil"
+              mnt=$(TMPDIR=/tmp mktemp -d -t nix-XXXXXXXXXX)
+              finish() {
+                echo "Detaching $mnt"
+                /usr/bin/hdiutil detach "$mnt" -force
+                rm -rf "$mnt"
+              }
+              trap finish EXIT
+              /usr/bin/hdiutil attach -nobrowse -mountpoint "$mnt" "$src"
+              echo 'Copying mounted contents'
+              cp -ar "$mnt/." "$PWD/"
+              ''
         else if isBinary
-        then ''
+then ''
           if [ "$(file --mime-type -b "$src")" == "application/gzip" ]; then
             gunzip $src -c > ${getBinary artifacts}
           elif [ "$(file --mime-type -b "$src")" == "application/x-mach-binary" ]; then
             cp $src ${getBinary artifacts}
           fi
         ''
-        else "";
+else "";
 
       sourceRoot = lib.strings.optionalString isApp (getApp artifacts);
 
-      # Patching shebangs invalidates code signing
+# Patching shebangs invalidates code signing
       dontPatchShebangs = true;
 
       installPhase =
         if isPkg
-        then ''
+then ''
           if [ -d "Applications" ]; then
             mkdir -p $out/Applications
             cp -R Applications/* $out/Applications/
@@ -122,8 +123,8 @@
             cp -R Library/* $out/Library/
           fi
         ''
-        else if isApp
-        then ''
+else if isApp
+then ''
           mkdir -p "$out/Applications/${finalAttrs.sourceRoot}"
           cp -R . "$out/Applications/${finalAttrs.sourceRoot}"
 
@@ -133,12 +134,12 @@
             makeWrapper "$out/Applications/${finalAttrs.sourceRoot}/Contents/MacOS/${lib.strings.removeSuffix ".app" finalAttrs.sourceRoot}" $out/bin/${cask.token}
           fi
         ''
-        else if (isBinary && !isApp)
-        then ''
+else if (isBinary && !isApp)
+then ''
           mkdir -p $out/bin
           cp -R ./* $out/bin/
         ''
-        else "";
+else "";
 
       meta = {
         inherit (cask) homepage;
