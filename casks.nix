@@ -70,27 +70,22 @@
         ''
         else if isApp 
         then ''
-          mime="$(file --mime-type -b "$src")"
-          case "$mime" in
-            application/x-apple-diskimage|application/octet-stream)
-              echo "Detected DMG – mounting with hdiutil"
-              mnt=$(TMPDIR=/tmp mktemp -d -t nix-XXXXXXXXXX)
-              finish() {
-                echo "Detaching $mnt"
-                /usr/bin/hdiutil detach "$mnt" -force
-                rm -rf "$mnt"
-              }
-              trap finish EXIT
-              /usr/bin/hdiutil attach -nobrowse -mountpoint "$mnt" "$src"
-              echo 'Copying mounted contents'
-              cp -ar "$mnt/." "$PWD/"
-              ;;
-            *)
-              echo "Unknown MIME: $mime"
-              echo "Attempting 7zz as a fallback"
-              7zz x -snld $src
-              ;;
-            esac
+          if [[ "$src" == *.dmg ]]; then
+            echo "Detected .dmg – mounting with hdiutil"
+            mnt=$(TMPDIR=/tmp mktemp -d -t nix-XXXXXXXXXX)
+            finish() {
+              echo "Detaching $mnt"
+              /usr/bin/hdiutil detach "$mnt" -force
+              rm -rf "$mnt"
+            }
+            trap finish EXIT
+            /usr/bin/hdiutil attach -nobrowse -mountpoint "$mnt" "$src"
+            echo "Copying mounted contents"
+            cp -ar "$mnt/." "$PWD/"
+          else
+            echo "Not a .dmg – extracting with 7zz"
+            7zz x -snld -- "$src"
+          fi
         ''
         else if isBinary
 then ''
