@@ -139,7 +139,7 @@ then ''
 
           if [ -d "Contents" ]; then
            name=$(awk '/<key>CFBundleName<\/key>/{getline; if ($0 ~ /<string>/) {sub(/.*<string>/,""); sub(/<\/string>.*/,""); n=$0}} /<key>CFBundleExecutable<\/key>/{getline; if ($0 ~ /<string>/) {sub(/.*<string>/,""); sub(/<\/string>.*/,""); e=$0}} END{if (n!="") print n ".app"; else if (e!="") print e ".app"; else print "Unknown.app"}' Contents/Info.plist)
-           mkdir -p "$out/Applications/$name"
+           mkdir -p "$out/Applications/$name/Contents"
            cp -R Contents/* $out/Applications/$name/Contents/
           fi
 
