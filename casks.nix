@@ -57,13 +57,25 @@
             xar
             cpio
             fd
+            pbzx
           ]
         );
 
       unpackPhase =
         if isPkg
         then ''
-          pkgutil --expand-full "$src" .
+          xar -xf $src
+          for pkg in $(cat Distribution | grep -oE "#.+\.pkg" | sed -e "s/^#//" -e "s/$/\/Payload/"); do
+            magic=$(xxd -l 6 "$pkg" | awk '{print $2$3$4}' | head -n1)
+            case $magic in
+              70627a78*) echo "PBZX detected"; pbzx -n "$pkg" | cpio -idm ;;
+              1f8b08*) echo "GZIP detected"; zcat "$pkg" | cpio -idm ;;
+              425a68*) echo "BZIP2 detected"; bzcat "$pkg" | cpio -idm ;;
+              fd377a58*) echo "XZ detected"; xzcat "$pkg" | cpio -idm ;;
+              *) echo "Unknown or already uncompressed"; file "$pkg" ;;
+            esac
+        fi
+    done
         ''
         else if isApp 
         then ''
