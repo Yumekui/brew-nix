@@ -74,8 +74,7 @@
               fd377a58*) echo "XZ detected"; xzcat "$pkg" | cpio -idm ;;
               *) echo "Unknown or already uncompressed"; file "$pkg" ;;
             esac
-        fi
-    done
+          done
         ''
         else if isApp 
         then ''
