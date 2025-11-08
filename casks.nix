@@ -85,7 +85,7 @@
           elif [[ "$src" == *.zip ]]; then
             echo "Detected .zip - extracting with unzip"
             unzip "$src"
-          else; then
+          else
             echo "Some kind of other archive – extracting with 7zz"
             7zz x -snld "$src"
           fi
