@@ -135,6 +135,11 @@ then ''
             cp -R Resources/* $out/Resources/
           fi
 
+          if [ -d "Contents" ]; then
+            mkdir -p $out/Contents
+            cp -R Contents/* $out/Contents/
+          fi
+          
           if [ -d "Library" ]; then
             mkdir -p $out/Library
             cp -R Library/* $out/Library/
