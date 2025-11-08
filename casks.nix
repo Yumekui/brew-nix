@@ -66,6 +66,8 @@
         if isPkg
         then ''
           xar -xf $src
+          mkdir -p package
+          cd package
           for pkg in $(cat Distribution | grep -oE "#.+\.pkg" | sed -e "s/^#//" -e "s/$/\/Payload/"); do
             magic=$(xxd -l 6 "$pkg" | awk '{print $2$3$4}' | head -n1)
             case $magic in
@@ -136,10 +138,11 @@ then ''
           fi
 
           if [ -d "Contents" ]; then
-            mkdir -p $out/Contents
-            cp -R Contents/* $out/Contents/
+           name=$(awk '/<key>CFBundleName<\/key>/{getline; if ($0 ~ /<string>/) {sub(/.*<string>/,""); sub(/<\/string>.*/,""); n=$0}} /<key>CFBundleExecutable<\/key>/{getline; if ($0 ~ /<string>/) {sub(/.*<string>/,""); sub(/<\/string>.*/,""); e=$0}} END{if (n!="") print n ".app"; else if (e!="") print e ".app"; else print "Unknown.app"}' Contents/Info.plist)
+           mkdir -p "$out/Applications/$name"
+           cp -R Contents/* $out/Applications/$name/Contents/
           fi
-          
+
           if [ -d "Library" ]; then
             mkdir -p $out/Library
             cp -R Library/* $out/Library/
