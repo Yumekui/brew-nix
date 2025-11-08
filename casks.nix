@@ -58,6 +58,7 @@
             cpio
             fd
             pbzx
+            unixtools.xxd
           ]
         );
 
