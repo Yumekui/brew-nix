@@ -49,7 +49,7 @@
         [
           gzip
           _7zz
-          file
+          unzip
           makeWrapper
         ]
         ++ lib.lists.optional isPkg (
@@ -82,8 +82,11 @@
             /usr/bin/hdiutil attach -nobrowse -mountpoint "$mnt" "$src"
             echo "Copying mounted contents"
             cp -ar "$mnt/." "$PWD/"
-          else
-            echo "Not a .dmg – extracting with 7zz"
+          elif [[ "$src" == *.zip ]]; then
+            echo "Detected .zip - extracting with unzip"
+            unzip "$src"
+          else; then
+            echo "Some kind of other archive – extracting with 7zz"
             7zz x -snld "$src"
           fi
         ''
