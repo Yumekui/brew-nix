@@ -63,10 +63,7 @@
       unpackPhase =
         if isPkg
         then ''
-          xar -xf $src
-          for pkg in $(cat Distribution | grep -oE "#.+\.pkg" | sed -e "s/^#//" -e "s/$/\/Payload/"); do
-            zcat $pkg | cpio -i
-          done
+          pkgutil --expand-full "$src" .
         ''
         else if isApp 
         then ''
