@@ -84,7 +84,7 @@
             cp -ar "$mnt/." "$PWD/"
           else
             echo "Not a .dmg – extracting with 7zz"
-            7zz x -snld -- "$src"
+            7zz x -snld "$src"
           fi
         ''
         else if isBinary
