@@ -46,7 +46,7 @@
       );
 
       overlays.default = final: _: {
-        brewCasks = self.packages.${final.system};
+        brewCasks = self.packages.${final.pkgs.stdenv.hostPlatform.system};
       };
 
       darwinModules.default = lib.modules.importApply ./module.nix { brewCasks = self.overlays.default; };
@@ -54,7 +54,7 @@
       checks = forAllSystems (
         pkgs:
         let
-          inherit (nix-darwin.packages.${pkgs.stdenv.hostPlatorm}) darwin-rebuild;
+          inherit (nix-darwin.packages.${pkgs.stdenv.hostPlatform}) darwin-rebuild;
         in
         {
           build-examples = pkgs.runCommandLocal "build-examples" { } ''
